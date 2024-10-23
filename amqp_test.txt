@@ -1,0 +1,30 @@
+import pika
+
+# Define the AMQP server connection parameters
+connection_params = pika.ConnectionParameters('localhost')  # Change 'localhost' to your RabbitMQ server's address
+connection = pika.BlockingConnection(connection_params)
+
+# Create a channel
+channel = connection.channel()
+
+# Declare a queue (this will create the queue if it doesn't exist)
+channel.queue_declare(queue='test_queue')
+
+# Send a message to the queue
+channel.basic_publish(exchange='',
+                      routing_key='test_queue',
+                      body='Hello AMQP!')
+
+print(" [x] Sent 'Hello AMQP!'")
+
+# Callback function to process received messages
+def callback(ch, method, properties, body):
+    print(f" [x] Received {body}")
+
+# Consume messages from the queue
+channel.basic_consume(queue='test_queue',
+                      on_message_callback=callback,
+                      auto_ack=True)
+
+print(' [*] Waiting for messages. To exit press CTRL+C')
+channel.start_consuming()
